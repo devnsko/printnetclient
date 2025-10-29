@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import api from '@/lib/api';
-import { saveToken } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 
 interface Props {
@@ -19,20 +18,26 @@ export default function AuthForm({ mode }: Props) {
     e.preventDefault();
     setError('');
 
-    try {
-      const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
-      const payload =
+      try {
+        const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
+        const payload =
         mode === 'register'
           ? { email, password, nickname }
           : { email, password };
 
-      const res = await api.post<{ token: string }>(endpoint, payload);
-      saveToken(res.data.token);
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Something went wrong');
-    }
-  }
+        // The server sets an httpOnly cookie (token). Make sure the request
+        // includes credentials so the browser stores the cookie.
+        // If `api` is an axios instance use `withCredentials: true`.
+        // If it's a fetch wrapper use `credentials: 'include'`.
+        await api.post(endpoint, payload, { withCredentials: true });
+
+        // token is httpOnly — you can't read it from JS. Just navigate (or
+        // fetch protected data which will send the cookie automatically).
+        router.push('/dashboard');
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Something went wrong');
+      }
+      }
 
   return (
     <form

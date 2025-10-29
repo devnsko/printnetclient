@@ -2,7 +2,11 @@ import Link from "next/link";
 import { getServerUser } from "@/lib/auth";
 
 export default async function Header() {
-    const user = await getServerUser();
+    const user = null;
+    // const user = await getServerUser();
+    // TODO: fix auth to enable this
+
+    console.log(user);
 
     return (
         <header className="bg-white border-b border-gray-200">
@@ -17,14 +21,8 @@ export default async function Header() {
                         </Link>
 
                         <nav className="hidden sm:flex space-x-4">
-                            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
+                            <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
                                 Home
-                            </Link>
-                            <Link href="/features" className="text-sm text-gray-600 hover:text-gray-900">
-                                Features
-                            </Link>
-                            <Link href="/pricing" className="text-sm text-gray-600 hover:text-gray-900">
-                                Pricing
                             </Link>
                         </nav>
                     </div>

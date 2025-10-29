@@ -1,30 +1,25 @@
-import jwt from 'jsonwebtoken';
+'use server';
+
+import api from '@/lib/api';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret';
-
 export async function getServerUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('token')?.value;
-
-  if (!token) return null;
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; nickname: string };
-    return decoded;
-  } catch {
+    // Read the cookie from Next.js server context
+    const token = (await cookies()).get('printnettoken')?.value;
+
+    if (!token) return null;
+
+    // Forward the cookie manually
+    const { data } = await api.get('/auth/me', {
+      headers: {
+        Cookie: `printnettoken=${token}`,
+      },
+    });
+
+    return data as { id: string; nickname: string };
+  } catch (err) {
+    console.error('Error fetching user data:', err);
     return null;
   }
-}
-
-export function saveToken(token: string) {
-  localStorage.setItem('token', token);
-}
-
-export function getToken() {
-  return localStorage.getItem('token');
-}
-
-export function clearToken() {
-  localStorage.removeItem('token');
 }
