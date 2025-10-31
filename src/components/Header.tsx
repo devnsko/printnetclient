@@ -1,12 +1,62 @@
+'use client';
+
 import Link from "next/link";
-import { getServerUser } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 
-export default async function Header() {
-    const user = null;
-    // const user = await getServerUser();
-    // TODO: fix auth to enable this
+type User = { id: string; nickname: string; role: string } | null;
 
-    console.log(user);
+export default function Header() {
+    const [user, setUser] = useState<User>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const fetchUser = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const axiosRes = await api.get("/auth/me");
+                const res = {
+                    ok: axiosRes.status >= 200 && axiosRes.status < 300,
+                    status: axiosRes.status,
+                    statusText: axiosRes.statusText,
+                    json: async () => axiosRes.data,
+                };
+
+                if (!res.ok) throw new Error(`Failed to fetch user: ${res.status} ${res.statusText}`);
+                const data: any = await res.json();
+
+                if (!mounted) return;
+
+                // 💡 The FIX: Check if the data *is* the user object, or if it's nested
+                const payload: any = data?.user ?? data;
+
+                if (!mounted) return;
+
+                console.log('User Data being set:', payload, typeof payload);
+
+                if (payload && typeof payload === "object" && payload.id && payload.nickname) {
+                    setUser({ id: payload.id, nickname: payload.nickname, role: payload.role ?? "" });
+                } else {
+                    setUser(null);
+                }
+            } catch (err: any) {
+                if (mounted) setError(err?.message ?? "Unknown error");
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+
+        fetchUser();
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
 
     return (
         <header className="bg-white border-b border-gray-200">
@@ -28,18 +78,23 @@ export default async function Header() {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        {user ? (
+                        {loading ? (
+                            <p>Loading...</p>
+                        ) : error ? (
+                            <p>Error: {error}</p>
+                        ) : user ? (
                             <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-700">
-                                    {user.nickname?.charAt(0).toUpperCase() ?? "U"}
+                                    <Link href="/profile">
+                                        {user.nickname?.charAt(0).toUpperCase() ?? "U"}
+                                    </Link>
                                 </div>
                                 <div className="hidden sm:block text-sm text-gray-700 truncate max-w-xs">
-                                    {user.nickname}
+                                    <Link href="/profile">
+                                        {user.nickname}
+                                    </Link>
                                 </div>
-                                <Link
-                                    href="/dashboard"
-                                    className="text-sm text-indigo-600 hover:text-indigo-700"
-                                >
+                                <Link href="/dashboard" className="text-sm text-indigo-600 hover:text-indigo-700">
                                     Dashboard
                                 </Link>
                             </div>

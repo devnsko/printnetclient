@@ -7,26 +7,26 @@ import type { NextRequest } from 'next/server';
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow public/excluded paths
-  if (
-    pathname === '/' ||
-    pathname.startsWith('/auth') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/static') ||
-    pathname === '/favicon.ico'
-  ) {
-    return NextResponse.next();
-  }
+  // // Allow public/excluded paths
+  // if (
+  //   pathname === '/' ||
+  //   pathname.startsWith('/auth') ||
+  //   pathname.startsWith('/_next') ||
+  //   pathname.startsWith('/static') ||
+  //   pathname === '/favicon.ico'
+  // ) {
+  //   return NextResponse.next();
+  // }
 
-  // Check cookie named 'printnettoken'
-  const token = req.cookies.get('printnettoken')?.value;
+  // // Check cookie named 'printnettoken'
+  // const token = req.cookies.get('printnettoken')?.value;
 
-  if (!token) {
-    // Redirect unauthenticated users to the home page (login/register are under /auth/*)
-    const url = req.nextUrl.clone();
-    url.pathname = '/';
-    return NextResponse.redirect(url);
-  }
+  // if (!token) {
+  //   // Redirect unauthenticated users to the home page (login/register are under /auth/*)
+  //   const url = req.nextUrl.clone();
+  //   url.pathname = '/';
+  //   return NextResponse.redirect(url);
+  // }
 
   return NextResponse.next();
 }
